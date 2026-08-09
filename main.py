@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 from plant import Plant
 from pid import PID
 
-dt = 1 # time step
-n = 100  # number of steps
+dt = 0.1 # time step
+n = 1000  # number of steps
 plant = Plant(mass=1.0, friction=0.05, initial_state=[0.0, 1.0])
 history = np.zeros((n,2))
 

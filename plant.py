@@ -1,6 +1,6 @@
 import numpy as np
 
-class Plant:
+class Plant_Car:
     def __init__(self, mass, friction, initial_state):
         self.mass = mass
         self.friction = friction # friction coefficient
@@ -16,4 +16,26 @@ class Plant:
     def derivative(self, control):
         acceleration = (control - self.friction * self.state[1]) / self.mass
         return acceleration
+
+class Plant_Drone:
+
+    def __init__(self, mass, friction, initial_state):
+        self.mass = mass
+        self.friction = friction # friction coefficient
+        self.state = np.array(initial_state) # [y, v]
+
+    def step(self, control, dt):
+        accel = self.acceleration(control)
+        new_velocity = self.state[1] + accel * dt # update velocity
+        new_position = (self.state[0] + new_velocity) * dt # update position
+
+        if new_position <= 0:
+            new_position = 0
+            new_velocity = max(0.0, new_velocity) # allow nonzero velocity to be preserved after landing
+
+        self.state = np.array([new_position, new_velocity])
+
+    def acceleration (self, control):
+        # calculate acceleration of drone and return
+        return (control - self.friction * self.state[1] - self.mass * 10) / self.mass
     

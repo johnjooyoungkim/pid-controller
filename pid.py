@@ -10,6 +10,7 @@ class PID:
         self.integral = 0.0
         self.previous_error = 0.0
         self.history = []
+        self.error = []
 
         
 
@@ -25,13 +26,19 @@ class PID:
         u = P_term + I_term + D_term
 
         self.history.append([P_term, I_term, D_term, u])
-
+        self.error.append(error)
         return u
 
     # params: none
-    # return: numpy array [P_term, I_term, D_term, u] 
+    # return: numpy array: history of [P_term, I_term, D_term, u] terms
     def return_history(self):
         return np.array(self.history)
 
-    def reset_history(self):
+    # params: none
+    # return: numpy array: history of error values
+    def return_error(self):
+        return np.array(self.error)
+
+    def reset(self):
         self.history = []
+        self.error = []

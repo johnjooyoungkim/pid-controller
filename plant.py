@@ -19,20 +19,29 @@ class Plant_Car:
 
 class Plant_Drone:
 
-    def __init__(self, mass, friction, initial_state):
+    def __init__(self, mass, friction, initial_state, saturation=None):
         self.mass = mass
         self.friction = friction # friction coefficient
         self.state = np.array(initial_state) # [y, v]
+        self.saturation = saturation
 
     def step(self, control, dt):
+
+        # actuator saturation
+        if self.saturation is not None:
+            control = np.clip(control, -self.saturation, self.saturation)
+
+        # next state calculation
         accel = self.acceleration(control)
         new_velocity = self.state[1] + accel * dt # update velocity
         new_position = (self.state[0] + new_velocity) * dt # update position
 
+        # clamping position when reaches ground
         if new_position <= 0:
             new_position = 0
             new_velocity = max(0.0, new_velocity) # allow nonzero velocity to be preserved after landing
 
+        # update current state
         self.state = np.array([new_position, new_velocity])
 
     def acceleration (self, control):

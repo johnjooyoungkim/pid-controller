@@ -11,22 +11,40 @@ class PID:
         self.previous_error = 0.0
         self.history = []
         self.error = []
-
         
 
-    def compute(self, command, output, dt):
+    def compute(self, command, output, dt, u_min=None, u_max=None):
         error = command - output
-        self.integral += error * dt
         derivative = (error - self.previous_error) / dt
-        self.previous_error = error
- 
-        P_term = self.Kp * error
-        I_term = self.Ki * self.integral
-        D_term = self.Kd * derivative
-        u = P_term + I_term + D_term
 
+        temp_integral = self.integral + error * dt
+        
+        
+
+        P_term = self.Kp * error
+        I_term = self.Ki * temp_integral
+        D_term = self.Kd * derivative
+        
+        u_unclamped = P_term + I_term + D_term
+
+        if u_min is not None and u_max is not None:
+
+            u_clamped = np.clip(u_unclamped, u_min, u_max)
+            if (u_clamped != u_unclamped) and u_unclamped * error > 0: # condition for clamp
+                u = u_clamped
+            else:
+                self.integral = temp_integral # integrator remains on
+                u = u_unclamped
+
+        else:
+            self.integral = temp_integral
+            u = u_unclamped
+        
+        self.previous_error = error
         self.history.append([P_term, I_term, D_term, u])
         self.error.append(error)
+
+
         return u
 
     # params: none

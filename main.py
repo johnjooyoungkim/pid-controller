@@ -6,8 +6,12 @@ from pid import PID
 
 dt = 0.1 # time step
 n = 3000  # number of steps
+
+# saturation
+saturation = 14.0
+
 plant = Plant_Car(mass=1.0, friction=0.05, initial_state=[0.0, 1.0])
-plant_drone = Plant_Drone(mass=1.0, friction=0.05, initial_state=[0.0, 0.0])
+plant_drone = Plant_Drone(mass=1.0, friction=0.05, initial_state=[0.0, 0.0], saturation=saturation)
 
 # record of state change
 history = np.zeros((n,2))
@@ -25,7 +29,7 @@ ctrl_PID = PID(Kp=0.5, Ki=0.1, Kd=0.1)
 for i in range(n):
     noisy_state = plant_drone.state[0] + np.random.normal(loc=0, scale=noise_std) # add sensor noise
 
-    plant_drone.step(ctrl_PID.compute(command=cmd, output=noisy_state, dt=dt), dt) # compute control input based on position 100 
+    plant_drone.step(ctrl_PID.compute(command=cmd, output=noisy_state, dt=dt, u_min=-saturation, u_max=saturation), dt) # compute control input based on position 100 
     history[i] = plant_drone.state
 
 # plot dynamics

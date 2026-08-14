@@ -18,8 +18,6 @@ class PID:
         derivative = (error - self.previous_error) / dt
 
         temp_integral = self.integral + error * dt
-        
-        
 
         P_term = self.Kp * error
         I_term = self.Ki * temp_integral

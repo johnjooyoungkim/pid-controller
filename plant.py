@@ -34,7 +34,7 @@ class Plant_Drone:
         # next state calculation
         accel = self.acceleration(control)
         new_velocity = self.state[1] + accel * dt # update velocity
-        new_position = (self.state[0] + new_velocity) * dt # update position
+        new_position = self.state[0] + new_velocity * dt # update position
 
         # clamping position when reaches ground
         if new_position <= 0:

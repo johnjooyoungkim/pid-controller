@@ -4,12 +4,12 @@ import matplotlib.pyplot as plt
 from plant import Plant_Car, Plant_Drone
 from pid import PID
 
-dt = 0.1 # time step
-n = 3000  # number of steps
+dt = 0.05 # time step
+n = 2000  # number of steps
 
 # saturation
-u_max = 14
-u_min = -14
+u_max = 30
+u_min = -30
 
 plant = Plant_Car(mass=1.0, friction=0.05, initial_state=[0.0, 1.0])
 plant_drone = Plant_Drone(mass=1.0, friction=0.05, initial_state=[0.0, 0.0], saturation=u_max)
@@ -18,20 +18,27 @@ plant_drone = Plant_Drone(mass=1.0, friction=0.05, initial_state=[0.0, 0.0], sat
 history = np.zeros((n,2))
 
 # setpoint
-cmd = 10
+cmd1 = 150
+cmd2 = 60
 
 # noise value (standard deviation)
-noise_std = 0
+noise_std = 0.0
 
 # pid controller init
-ctrl_PID = PID(Kp=0.51, Ki=0.02, Kd=0.5)
+ctrl_PID = PID(Kp=0.50, Ki=0.02, Kd=0.5)
 
 
 # step through 
-for i in range(n):
+for i in range(int(n/2)):
     noisy_state = plant_drone.state[0] + np.random.normal(loc=0, scale=noise_std) # add sensor noise
 
-    plant_drone.step(ctrl_PID.compute(command=cmd, output=noisy_state, dt=dt, u_min=u_min, u_max=u_max), dt) # compute control input based on position 100 
+    plant_drone.step(ctrl_PID.compute(command=cmd1, output=noisy_state, dt=dt, u_min=u_min, u_max=u_max), dt) # compute control input based on position 100 
+    history[i] = plant_drone.state
+
+for i in range(int(n/2), n):
+    noisy_state = plant_drone.state[0] + np.random.normal(loc=0, scale=noise_std) # add sensor noise
+
+    plant_drone.step(ctrl_PID.compute(command=cmd2, output=noisy_state, dt=dt, u_min=u_min, u_max=u_max), dt) # compute control input based on position 100 
     history[i] = plant_drone.state
 
 # plot dynamics

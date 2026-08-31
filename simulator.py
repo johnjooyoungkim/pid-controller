@@ -17,25 +17,46 @@ class Simulator:
     def simulate(self, 
                 pid, 
                 command,
-                state_index, # index of the controlled state
-                noise_std):
+                state_index=0, # index of the controlled state
+                noise_std=0,
+                u_min=None,
+                u_max=None):
 
         # record of state change
-        history = np.zeros((n,len(self.plant.state)))
-
+        history = np.zeros((self.n, len(self.plant.state)))
 
         # step through 
-        #for i in range(n):
-        #    noisy_state = plant.state[state_index] + np.random.normal(loc=0, scale=noise_std) # add sensor noise
-        #    plant.step(pid.compute(command=command, output=noisy_state, dt=dt, u_min=u_min, u_max=u_max), dt) # compute control input based on position 100 
-        #    history[i] = plant_drone.state
-
-        #for i in range(int(n/2), n):
-        #    noisy_state = plant_drone.state[0] + np.random.normal(loc=0, scale=noise_std) # add sensor noise
-
-        #    plant_drone.step(ctrl_PID.compute(command=cmd2, output=noisy_state, dt=dt, u_min=u_min, u_max=u_max), dt) # compute control input based on position 100 
-        #    history[i] = plant_drone.state
-
-
+        for i in range(self.n):
+            noisy_state = self.plant.state[state_index] + np.random.normal(loc=0, scale=noise_std) # add sensor noise
+            self.plant.step(pid.compute(command=command, output=noisy_state, dt=self.dt, u_min=u_min, u_max=u_max), self.dt) # compute control input based on position 100 
+            history[i] = self.plant.state
 
         return history
+
+    def plot(self, pid, history, dt, n):
+        fig, (ax_x, ax_v, ax_e, ax_pid) = plt.subplots(4,1, figsize=(6,11))
+        ax_x.plot(np.linspace(0,dt*n, n), history[:,0])
+        ax_x.set_ylabel("position")
+        ax_v.plot(np.linspace(0,dt*n, n), history[:,1])
+        ax_v.set_ylabel("velocity")
+
+        # plot PID values + error
+        pid_history = pid.return_history()
+        error_history = pid.return_error()
+
+        ax_e.plot(np.linspace(0, dt*n, n), error_history)
+        ax_e.set_ylabel("error")
+        ax_e.axhline(0, color='black', linestyle='-')
+        ax_e.fill_between(np.linspace(0, dt*n, n), error_history, color="skyblue", alpha=0.4)
+
+        ax_pid.plot(np.linspace(0,dt*n, n), pid_history[:,0],  label="P term")
+        ax_pid.plot(np.linspace(0,dt*n, n), pid_history[:,1], label="I term")
+        ax_pid.plot(np.linspace(0,dt*n, n), pid_history[:,2], label="D term")
+        ax_pid.plot(np.linspace(0,dt*n, n), pid_history[:,3], label="total control", linestyle="--")
+        ax_pid.legend()
+        ax_pid.axhline(0, color='black', linestyle='-')
+        ax_pid.set_xlabel("timestep")
+        ax_pid.set_ylabel("control contribution")
+
+        plt.suptitle("PID control on drone movement")
+        plt.savefig('output.png')

@@ -7,12 +7,12 @@ from simulator import Simulator
 from ZieglerNichols import ziegler_nichols_pid, find_ultimate_gain
 
 
-dt = 0.05 # time step
+dt = 0.1 # time step
 n = 2000  # number of steps
 
 # saturation
-u_max = 30
-u_min = -30
+u_max = None
+u_min = None
 
 plant = Plant_Car(mass=1.0, friction=0.05, initial_state=[0.0, 1.0])
 plant_drone = Plant_Drone(mass=1.0, friction=0.05, initial_state=[0.0, 0.0], saturation=u_max)
@@ -21,14 +21,14 @@ plant_drone = Plant_Drone(mass=1.0, friction=0.05, initial_state=[0.0, 0.0], sat
 cmd = 150
 
 # noise value (standard deviation)
-noise_std = 0.1
+noise_std = 0.0
 
 # pid controller init
 pid = PID(Kp=0.50, Ki=0.02, Kd=0.5)
 
 
 #Z-N
-Ku, Tu = find_ultimate_gain(plant=plant,
+Ku, Tu = find_ultimate_gain(plant=plant_drone,
                             command=cmd,
                             tolerance=0.05, # tolerance for critical point (percentage)
                             kp_start=0.0, 
@@ -36,6 +36,7 @@ Ku, Tu = find_ultimate_gain(plant=plant,
                             dt=dt, 
                             n=n,
                             kp_max=100)
+                            
 zn = ziegler_nichols_pid(Ku=Ku, Tu=Tu)
 pid_ZN = PID(Kp=zn["Kp"], Ki=zn["Ki"], Kd=zn["Kd"])
 

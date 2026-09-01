@@ -11,7 +11,7 @@ class Plant_Car:
         # update the state of the plant based on control input and time step
         if self.saturation is not None:
             if control > self.saturation: control = self.saturation
-            elif contrl < -self.saturation: control = -self.saturation
+            elif control < -self.saturation: control = -self.saturation
 
         accel = self.derivative(control)
         new_velocity = self.state[1] + accel * dt

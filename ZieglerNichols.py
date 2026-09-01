@@ -24,10 +24,11 @@ def find_ultimate_gain(
 
     kp = kp_start
     simulator = Simulator(plant, dt, n)
-
+    initial_state = plant.state.copy()
     while kp < kp_max:
+        plant.state = initial_state.copy()
         pid = PID(Kp=kp, Ki=0, Kd=0)
-        history = simulator.simulate(pid, 
+        history = simulator.simulate(pid=pid, 
                 command=command,
                 state_index=state_index, # index of the controlled state
                 noise_std=0,
@@ -50,7 +51,7 @@ def is_critical_point(history, # 1d numpy array with the history of the controll
     peaks,_ = signal.find_peaks(history) # peaks: (ndarray) peak amplitudes of history
     if len(peaks) < 4:
         return False
-    amplitudes = [abs(p) for p in peaks[-4:]]
+    amplitudes = [abs(history[p]) for p in peaks[-4:]]
     return (max(amplitudes) - min(amplitudes)) / max(amplitudes) < tolerance
 
 def measure_period(peaks, dt, n_last=4):

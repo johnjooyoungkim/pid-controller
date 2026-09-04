@@ -40,6 +40,7 @@ def find_ultimate_gain(
             peaks,_ = signal.find_peaks(history)
             Tu = measure_period(peaks=peaks,dt=dt)
             Ku = kp
+            plant.state = initial_state.copy()
             # return Ku, Tu
             return Ku, Tu
         kp += kp_step

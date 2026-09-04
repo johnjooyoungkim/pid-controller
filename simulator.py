@@ -60,3 +60,42 @@ class Simulator:
 
         plt.suptitle("PID control on drone movement")
         plt.savefig('output.png')
+
+    def report(self, history, command, dt):
+        pos = history[:, 0]
+        metrics = {
+            "rise_time": rise_time(pos, command, dt),
+            "overshoot_%": overshoot(pos, command),
+            "settling_time": settling_time(pos, command, dt),
+            "steady_state_error": steady_state_error(pos, command),
+        }
+        for k, v in metrics.items():
+            print(f"{k}: {v:.3f}" if v is not None else f"{k}: N/A")
+        return metrics
+
+def rise_time(history, setpoint, dt, low=0.1, high=0.9):
+    history = np.array(history)
+    low_val, high_val = low * setpoint, high * setpoint
+    try:
+        t_low = np.where(history >= low_val)[0][0]
+        t_high = np.where(history >= high_val)[0][0]
+        return (t_high - t_low) * dt
+    except IndexError:
+        return None  # never reached thresholds
+
+def overshoot(history, setpoint):
+    peak = max(history) if setpoint >= 0 else min(history)
+    return max(0.0, (peak - setpoint) / setpoint * 100) # percentage
+
+def settling_time(history, setpoint, dt, tol=0.02):
+    history = np.array(history)
+    band = tol * abs(setpoint)
+    # find last index where response is OUTSIDE the tolerance band
+    outside = np.where(np.abs(history - setpoint) > band)[0]
+    if len(outside) == 0:
+        return 0.0
+    return outside[-1] * dt  # time it last exits the band = settling time
+
+def steady_state_error(history, setpoint, n_last=50):
+    return setpoint - np.mean(history[-n_last:])
+

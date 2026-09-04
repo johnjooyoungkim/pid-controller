@@ -11,8 +11,8 @@ dt = 0.1 # time step
 n = 2000  # number of steps
 
 # saturation
-u_max = None
-u_min = None
+u_max = 15
+u_min = -15
 
 plant = Plant_Car(mass=1.0, friction=0.05, initial_state=[0.0, 1.0])
 plant_drone = Plant_Drone(mass=1.0, friction=0.05, initial_state=[0.0, 0.0], saturation=u_max)
@@ -30,7 +30,7 @@ pid = PID(Kp=0.50, Ki=0.02, Kd=0.5)
 #Z-N
 Ku, Tu = find_ultimate_gain(plant=plant_drone,
                             command=cmd,
-                            tolerance=0.05, # tolerance for critical point (percentage)
+                            tolerance=0.01, # tolerance for critical point (percentage)
                             kp_start=0.0, 
                             kp_step=0.01, 
                             dt=dt, 
@@ -51,5 +51,6 @@ history = simulator_drone.simulate(pid=pid_ZN,
                 u_min=u_min,
                 u_max=u_max)
 
-# plot dynamics
+# plot dynamics & print performance evaluation
 simulator_drone.plot(pid=pid_ZN, history=history, dt=dt,n=n)
+simulator_drone.report(history=history, command=cmd, dt=dt)

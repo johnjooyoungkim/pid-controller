@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import copy
 
 from plant import Plant_Car, Plant_Drone
 from pid import PID
@@ -42,9 +43,18 @@ pid_ZN = PID(Kp=zn["Kp"], Ki=zn["Ki"], Kd=zn["Kd"])
 
 
 # SIMULATION
-simulator_drone = Simulator(plant=plant_drone, dt=dt, n=n)
+simulator_drone = Simulator(plant=copy.deepcopy(plant_drone), dt=dt, n=n)
 
-history = simulator_drone.simulate(pid=pid_ZN, 
+history_manual = simulator_drone.simulate(pid=pid, 
+                command=cmd,
+                state_index=0, # index of the controlled state
+                noise_std=noise_std,
+                u_min=u_min,
+                u_max=u_max)
+
+simulator_drone = Simulator(plant=copy.deepcopy(plant_drone), dt=dt, n=n)
+
+history_ZN = simulator_drone.simulate(pid=pid_ZN, 
                 command=cmd,
                 state_index=0, # index of the controlled state
                 noise_std=noise_std,
@@ -52,5 +62,12 @@ history = simulator_drone.simulate(pid=pid_ZN,
                 u_max=u_max)
 
 # plot dynamics & print performance evaluation
-simulator_drone.plot(pid=pid_ZN, history=history, dt=dt,n=n)
-simulator_drone.report(history=history, command=cmd, dt=dt)
+
+    # manual tuning
+print("Performance Evaluation: manual tuning")
+simulator_drone.plot(filename="manual_tuning", pid=pid, history=history_manual, dt=dt,n=n)
+simulator_drone.report(history=history_manual, command=cmd, dt=dt)
+    # Ziegler-Nichols tuning
+print("Performance Evaluation: Ziegler-Nichols tuning")
+simulator_drone.plot(filename="ZN_tuning", pid=pid_ZN, history=history_ZN, dt=dt,n=n)
+simulator_drone.report(history=history_ZN, command=cmd, dt=dt)

@@ -1,0 +1,10 @@
+Performance Evaluation manual tuning
+rise_time: 5.600
+overshoot_%: 0.000
+settling_time: 53.400
+steady_state_error: 0.007
+Performance Evaluation Ziegler-Nichols tuning
+rise_time: 6.300
+overshoot_%: 15.639
+settling_time: 63.500
+steady_state_error: -0.001

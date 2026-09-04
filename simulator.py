@@ -24,7 +24,7 @@ class Simulator:
 
         # record of state change
         history = np.zeros((self.n, len(self.plant.state)))
-
+        
         # step through 
         for i in range(self.n):
             noisy_state = self.plant.state[state_index] + np.random.normal(loc=0, scale=noise_std) # add sensor noise
@@ -33,7 +33,7 @@ class Simulator:
 
         return history
 
-    def plot(self, pid, history, dt, n):
+    def plot(self, filename, pid, history, dt, n):
         fig, (ax_x, ax_v, ax_e, ax_pid) = plt.subplots(4,1, figsize=(6,11))
         ax_x.plot(np.linspace(0,dt*n, n), history[:,0])
         ax_x.set_ylabel("position")
@@ -57,9 +57,10 @@ class Simulator:
         ax_pid.axhline(0, color='black', linestyle='-')
         ax_pid.set_xlabel("timestep")
         ax_pid.set_ylabel("control contribution")
-
+        
         plt.suptitle("PID control on drone movement")
-        plt.savefig('output.png')
+
+        plt.savefig(f'{filename}.png')
 
     def report(self, history, command, dt):
         pos = history[:, 0]

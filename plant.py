@@ -1,13 +1,18 @@
 import numpy as np
 
 class Plant_Car:
-    def __init__(self, mass, friction, initial_state):
+    def __init__(self, mass, friction, initial_state, saturation=None):
         self.mass = mass
         self.friction = friction # friction coefficient
         self.state = np.array(initial_state)  # [position, velocity]
+        self.saturation = saturation
 
     def step(self, control, dt):
         # update the state of the plant based on control input and time step
+        if self.saturation is not None:
+            if control > self.saturation: control = self.saturation
+            elif control < -self.saturation: control = -self.saturation
+
         accel = self.derivative(control)
         new_velocity = self.state[1] + accel * dt
         new_position = self.state[0] + new_velocity * dt  # update position

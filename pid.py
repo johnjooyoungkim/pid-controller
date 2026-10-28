@@ -62,6 +62,14 @@ class PID:
     def return_error(self):
         return np.array(self.error)
 
+    # return: control command history, clipped to the actuator limits
+    # (the command the plant actually receives)
+    def return_control(self, u_min=None, u_max=None):
+        u = self.return_history()[:, 3]
+        if u_min is not None and u_max is not None:
+            u = np.clip(u, u_min, u_max)
+        return u
+
     def reset(self):
         self.integral = 0.0
         self.previous_output = None

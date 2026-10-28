@@ -1,0 +1,7 @@
+rise_time: 5.600
+overshoot_%: 0.000
+settling_time: 53.400
+steady_state_error: 0.007
+peak_control: 15.000
+rms_control: 10.154
+saturation_%: 3.200

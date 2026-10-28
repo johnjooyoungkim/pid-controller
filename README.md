@@ -23,7 +23,7 @@ Each plot shows position, velocity, error, and the P / I / D / total control con
 - **Two plants:** a 1-D car (mass + viscous friction) and a drone along its vertical axis (gravity, thrust limit, ground contact)
 - **Actuator saturation** and **Gaussian sensor noise** (configurable)
 - **Automated Ziegler–Nichols tuning:** finds the ultimate gain and oscillation period by simulation, then computes PID gains
-- **Performance report:** rise time, overshoot, settling time, steady-state error
+- **Performance report:** rise time, overshoot, settling time, steady-state error, peak control effort, rms control effort, saturation %
 - **Diagnostic plots** of the state, error, and each PID term
 
 ## Project structure
@@ -82,27 +82,34 @@ To change the experiment, edit the parameters at the top of `main.py`: setpoint 
 
 Experiment: drone plant (mass 1, friction 0.05), setpoint 150, `dt = 0.1 s`, 200 s simulation, thrust limited to ±15, no sensor noise.
 
-| Tuning | Kp | Ki | Kd | Rise time | Overshoot | Settling time (2%) | Steady-state error |
-|--------|------|--------|-------|-----------|-----------|--------------------|--------------------|
-| Manual | 0.50 | 0.02 | 0.50 | 5.6 s | 0.0 % | 53.4 s | 0.007 |
-| Ziegler–Nichols | 0.114 | 0.0158 | 0.205 | 6.3 s | 15.6 % | 63.5 s | −0.001 |
+| Tuning | Kp | Ki | Kd | Rise time | Overshoot | Settling time (2%) | Steady-state error | Peak control | RMS control | Saturation (%) |
+|--------|------|--------|-------|-----------|-----------|--------------------|--------------------|--------------|-------------|----------------|
+| Manual | 0.50 | 0.02 | 0.50 | 5.6 s | 0.0 % | 53.4 s | 0.007 | 15.0 | 10.15 | 3.2 % |
+| Ziegler–Nichols | 0.114 | 0.0158 | 0.205 | 6.3 s | 15.6 % | 63.5 s | −0.001 | 15.0 | 10.10 | 0.85 % |
 
 Ziegler–Nichols found `Ku = 0.19` and `Tu = 14.4 s`.
 
-Metric definitions: rise time is the 10% → 90% time, settling time is the last time the response leaves a ±2% band around the setpoint, and steady-state error is the average over the last 5 s.
+Metric definitions: 
+- Rise time:  10% → 90% time
+- Settling time: Last time the response leaves a ±2% band around the setpoint
+- Steady-state error: Average error over the last 5s
+- Peak control: Maximum absolute control signal applied
+- RMS control: Root-mean-square value of the control signal (actuator energy)
+- Saturation %: Percentage of time steps the control signal saturates
 
 **Observations**
 
-- The integral term converges to about 10, which equals `m·g`: the integrator effectively learns the hover thrust needed to cancel gravity. This is why the manually tuned response, which rises quickly without overshooting the setpoint, still has a long settling tail while the integrator winds up to that value.
-- Ziegler–Nichols gives a lightly damped, oscillatory response (15.6 % overshoot) that settles later but with a smaller steady-state error. This is the characteristic behavior of the Ziegler–Nichols rule, which is meant as a fast starting point for further hand tuning rather than a finished design.
+- The performance plot and metrics show that manually tuned gains lead to faster rise and settling time than ZieglerNichols tuning. However, the tradeoff is evident in the massive amount of saturation for the manually tuned controller, whereas Ziegler-Nichols show a much smoother dynamic and lower saturation. 
+- If saturation was not present, Ziegler-Nichols tuning would have had much lower controller effort metrics than manual tuning. Saturation conceals the huge spike in controller effort for manual tuning, while also handicapping metrics such as rise-time.
 
 ## Limitations and next steps
 
-- Single-axis plants only; no coupled or multi-axis dynamics
+- This modular design is limited to single-axis plants only; no coupled or multi-axis dynamics.
 - No low-pass filter on the derivative term, so the D term amplifies sensor noise
-- Fixed-step Euler integration and step-response metrics only (no disturbance injection yet)
-- Planned: noise and disturbance sweeps, a filtered derivative, and a comparison against state-space control in [lqr-control-sim](https://github.com/johnjooyoungkim/lqr-control-sim)
+- Fixed-step Euler integration and step-response metrics only 
+- Next steps: LQR control, Complex Cart-Pole plant, limited sensor data and full-state estimation using a Kalman Filter in https://github.com/johnjooyoungkim/lqr-control-sim
 
 ## Author
 
-Jooyoung Kim, Electrical Engineering at Georgia Tech. Built while studying control theory independently.
+Jooyoung Kim, Electrical Engineering at Georgia Tech.
+Individual project 

@@ -66,8 +66,12 @@ history_ZN = simulator_drone.simulate(pid=pid_ZN,
     # manual tuning
 print("Performance Evaluation: manual tuning")
 simulator_drone.plot(filename="manual_tuning", pid=pid, history=history_manual, dt=dt,n=n)
-simulator_drone.report(history=history_manual, command=cmd, dt=dt)
+simulator_drone.report(history=history_manual, command=cmd, dt=dt,
+                       u=pid.return_control(u_min, u_max), u_limit=u_max,
+                       save_dir="results", filename="manual_tuning_metrics")
     # Ziegler-Nichols tuning
 print("Performance Evaluation: Ziegler-Nichols tuning")
 simulator_drone.plot(filename="ZN_tuning", pid=pid_ZN, history=history_ZN, dt=dt,n=n)
-simulator_drone.report(history=history_ZN, command=cmd, dt=dt)
+simulator_drone.report(history=history_ZN, command=cmd, dt=dt,
+                       u=pid_ZN.return_control(u_min, u_max), u_limit=u_max,
+                       save_dir="results", filename="ZN_tuning_metrics")

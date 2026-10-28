@@ -1,6 +1,6 @@
 # simulator class for simulation and performance evaluation
 
-
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -55,12 +55,13 @@ class Simulator:
         ax_pid.plot(np.linspace(0,dt*n, n), pid_history[:,3], label="total control", linestyle="--")
         ax_pid.legend()
         ax_pid.axhline(0, color='black', linestyle='-')
-        ax_pid.set_xlabel("timestep")
+        ax_pid.set_xlabel("time [s]")
         ax_pid.set_ylabel("control contribution")
         
         plt.suptitle("PID control on drone movement")
 
-        plt.savefig(f'{filename}.png')
+        os.makedirs("results", exist_ok=True)
+        plt.savefig(f"results/{filename}.png", dpi=150)
 
     def report(self, history, command, dt):
         pos = history[:, 0]
@@ -73,6 +74,52 @@ class Simulator:
         for k, v in metrics.items():
             print(f"{k}: {v:.3f}" if v is not None else f"{k}: N/A")
         return metrics
+    
+    def report(
+    self,
+    history,
+    command,
+    dt,
+    u=None,
+    u_limit=None,
+    save_dir="simulation_reports",
+    filename="report.txt",):
+        pos = history[:, 0]
+        metrics = {
+            "rise_time": rise_time(pos, command, dt),
+            "overshoot_%": overshoot(pos, command),
+            "settling_time": settling_time(pos, command, dt),
+            "steady_state_error": steady_state_error(pos, command),
+        }
+        # actuator effort (needs the applied control signal u)
+        if u is not None:
+            metrics.update(effort_metrics(u, u_limit))
+
+        output_lines = []
+        for k, v in metrics.items():
+            line = f"{k}: {v:.3f}" if v is not None else f"{k}: N/A"
+            print(line)
+            output_lines.append(line)
+        
+        if save_dir:
+            os.makedirs(save_dir, exist_ok=True)  # Creates directory if it doesn't exist
+            file_path = os.path.join(save_dir, filename)
+            with open(file_path, "w") as f:
+                f.write("\n".join(output_lines) + "\n")
+
+        return metrics
+    
+
+def effort_metrics(u, u_limit=None):
+    u = np.array(u)
+    metrics = {
+        "peak_control_effort": float(np.max(np.abs(u))),                 # largest control magnitude
+        "rms_control_effort": float(np.sqrt(np.mean(u ** 2))),           # overall effort
+    }
+    if u_limit is not None:
+        # percentage of time steps at the actuator limit
+        metrics["saturation_%"] = float(100 * np.mean(np.abs(u) >= u_limit - 1e-9))
+    return metrics
 
 def rise_time(history, setpoint, dt, low=0.1, high=0.9):
     history = np.array(history)

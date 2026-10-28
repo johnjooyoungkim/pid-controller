@@ -63,5 +63,7 @@ class PID:
         return np.array(self.error)
 
     def reset(self):
+        self.integral = 0.0
+        self.previous_output = None
         self.history = []
         self.error = []

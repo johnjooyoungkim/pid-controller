@@ -1,6 +1,6 @@
 # simulator class for simulation and performance evaluation
 
-
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -55,12 +55,13 @@ class Simulator:
         ax_pid.plot(np.linspace(0,dt*n, n), pid_history[:,3], label="total control", linestyle="--")
         ax_pid.legend()
         ax_pid.axhline(0, color='black', linestyle='-')
-        ax_pid.set_xlabel("timestep")
+        ax_pid.set_xlabel("time [s]")
         ax_pid.set_ylabel("control contribution")
         
         plt.suptitle("PID control on drone movement")
 
-        plt.savefig(f'{filename}.png')
+        os.makedirs("results", exist_ok=True)
+        plt.savefig(f"results/{filename}.png", dpi=150)
 
     def report(self, history, command, dt):
         pos = history[:, 0]
